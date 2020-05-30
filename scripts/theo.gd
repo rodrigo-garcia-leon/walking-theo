@@ -1,27 +1,37 @@
 extends KinematicBody2D
 
-export (int) var speed = 100
+var speed = 100
+var jumpTime = 0.2
 
 var velocity = Vector2()
+var isJumping = false
+var jumpCounter = jumpTime
 
-func get_input():
+func _physics_process(delta):
 	velocity = Vector2()
+
+	if Input.is_action_pressed('ui_up') and is_on_floor():
+		isJumping = true
 	
-	velocity.y += 0.01
+	if isJumping:
+		velocity.y -= speed
+		jumpCounter -= delta
+	else:
+		velocity.y += speed
+
+	if jumpCounter < 0:
+		isJumping = false
+		jumpCounter = jumpTime
 	
 	if Input.is_action_pressed('ui_right'):
-		velocity.x += 1
+		velocity.x += speed
 		$sprite.play("run")
 		$sprite.set_flip_h(false)
 	elif Input.is_action_pressed('ui_left'):
-		velocity.x -= 1
+		velocity.x -= speed
 		$sprite.play("run")
 		$sprite.set_flip_h(true)
 	else:
 		$sprite.stop()
 
-	velocity = velocity.normalized() * speed
-
-func _physics_process(_delta):
-	get_input()
-	velocity = move_and_slide(velocity)
+	velocity = move_and_slide(velocity, Vector2(0, -1))
